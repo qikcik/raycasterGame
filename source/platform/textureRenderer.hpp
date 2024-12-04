@@ -2,10 +2,11 @@
 
 #include <functional>
 
-
 #include "raylib.h"
 #include "rlImGui.h"
 #include "imgui.h"
+#include "platform/windowManager.hpp"
+#include "platform/vec2.hpp"
 
 
 class TextureRenderer {
@@ -20,16 +21,24 @@ public:
     }
 
 
-    void changeSize(const int inWidth,const int inHeight) {
+    void changeSize(Vec2i inSize) {
         if(textureLoaded)
             UnloadRenderTexture(texture);
-        texture = LoadRenderTexture(inWidth, inHeight);
+        texture = LoadRenderTexture(inSize.x, inSize.y);
         textureLoaded = true;
     }
 
+    Vec2i getTextureSize() const {
+        if(textureLoaded)
+            return {texture.texture.width,texture.texture.height};
+        return {0,0};
+    }
 
     void drawContent(const std::function<void()>& inDrawCallback)
     {
+        if(!textureLoaded || texture.texture.width == 0)
+            return;
+
         BeginTextureMode(texture);
         ClearBackground(DARKGRAY);
         inDrawCallback();

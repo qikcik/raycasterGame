@@ -1,8 +1,11 @@
 #include <raylib.h>
 
-#include "platform/qeditor.hpp"
+#include "platform/windowManager.hpp"
 #include "platform/textureRenderer.hpp"
 #include "platform/window.hpp"
+
+#include "game/level.hpp"
+#include "game/levelEditor.hpp"
 
 class TestWindow : public Window
 {
@@ -11,7 +14,7 @@ public:
 
     void onInstanced() override
     {
-        renderer.changeSize(GetScreenWidth(), GetScreenHeight());
+        renderer.changeSize({GetScreenWidth(), GetScreenHeight()});
     }
 
     void onUpdate(float deltaTime) override
@@ -41,7 +44,11 @@ WindowManager* WindowManager::instance = nullptr;
 
 int main(void)
 {
-    WindowManager::get()->queueAddWindowView(std::make_unique<TestWindow>());
+    Level level;
+    level.size = {16,16};
+    level.setTile({0,0},Tile::Wall);
+    WindowManager::get()->queueAddWindowView(std::make_unique<LevelEditor>(level));
+
     WindowManager::get()->properties.showImGuiShowcase    = false;
     WindowManager::get()->properties.showImGuiDebugInfo   = false;
     WindowManager::get()->run({640,480});
