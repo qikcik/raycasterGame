@@ -6,6 +6,7 @@
 
 #include "game/level.hpp"
 #include "game/levelEditor.hpp"
+#include "game/minimapView.hpp"
 
 class TestWindow : public Window
 {
@@ -48,6 +49,7 @@ int main(void)
     level.size = {16,16};
     level.setTile({0,0},Tile::Wall);
     WindowManager::get()->queueAddWindowView(std::make_unique<LevelEditor>(level));
+    WindowManager::get()->queueAddWindowView(std::make_unique<MinimapView>(level));
 
     WindowManager::get()->properties.showImGuiShowcase    = false;
     WindowManager::get()->properties.showImGuiDebugInfo   = false;

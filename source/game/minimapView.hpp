@@ -2,11 +2,12 @@
 
 #include <cmath>
 #include <iostream>
+#include "player.hpp"
 
-class LevelEditor : public Window
+class MinimapView : public Window
 {
     public:
-        explicit LevelEditor(Level& level) : Window("LevelEditor"), level(level) {}
+        explicit MinimapView(Level& level) : Window("minimapView"), level(level) {}
 
         void onInstanced() override
         {
@@ -25,25 +26,21 @@ class LevelEditor : public Window
         {
             int tileSize = std::min(renderer.getTextureSize().x,renderer.getTextureSize().y) / std::max(level.size.x,level.size.y);
 
-            Vector2 mousePos {};
-            mousePos.x = GetMousePosition().x - renderer.lastRenderedScreenRect.x;
-            mousePos.y = GetMousePosition().y - renderer.lastRenderedScreenRect.y;
+            if(IsKeyDown(KEY_LEFT))
+                player.rotationAngle += player.rotationSpeed*deltaTime;
+            if(IsKeyDown(KEY_RIGHT))
+                player.rotationAngle -= player.rotationSpeed*deltaTime;
 
+            Vec2f rotationVec = {sin(player.rotationAngle),cos(player.rotationAngle)};
 
+            Vec2f newPos = player.pos;
+            if(IsKeyDown(KEY_UP))
+                newPos += {rotationVec.x*player.moveSpeed*deltaTime,rotationVec.y*player.moveSpeed*deltaTime};
+            if(IsKeyDown(KEY_DOWN))
+                newPos += {-rotationVec.x*player.moveSpeed*deltaTime,-rotationVec.y*player.moveSpeed*deltaTime};
 
-            if(mousePos.x > 0 && mousePos.y > 0  && mousePos.x <= level.size.x*tileSize && mousePos.y <= level.size.y*tileSize)
-            {
-                Vec2i levelPos {static_cast<int>(mousePos.x / tileSize), static_cast<int>(mousePos.y / tileSize)};
-                std::cout << levelPos.x << " " << levelPos.y << std::endl;
-                if(IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-                {
-                    level.setTile(levelPos,Tile::Wall);
-                }
-                if(IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-                {
-                    level.setTile(levelPos,Tile::Empty);
-                }
-            }
+            if( level.getTile({(int)newPos.x,(int)newPos.y}) == Tile::Empty )
+                player.pos = newPos;
 
             renderer.drawContent([&]()
             {
@@ -63,18 +60,21 @@ class LevelEditor : public Window
                     }
 
                 }}
+                Vec2f renderPlayerPos = player.pos * tileSize;
+                DrawCircle(renderPlayerPos.x,renderPlayerPos.y,10,RED);
+
+                Vec2f rotationVec = {sin(player.rotationAngle),cos(player.rotationAngle)};
+                DrawLine(renderPlayerPos.x,renderPlayerPos.y,renderPlayerPos.x+(rotationVec.x*100),renderPlayerPos.y+(rotationVec.y*100),RED);
             });
         }
 
         void onImGuiDraw() override
         {
-            ImGui::SliderInt("x",&level.size.x,4,32);
-            ImGui::SliderInt("y",&level.size.y,4,32);
-
             renderer.draw();
         }
 
     protected:
         Level& level;
+        Player player {};
         TextureRenderer renderer;
 };
